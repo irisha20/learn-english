@@ -1,0 +1,77 @@
+<%- include("header") -%>
+
+  <div class="box" id="heading">
+    <h1>  Check Your Knowledge</h1>
+
+</div>
+
+
+
+
+  <table class="table table-bordered ">
+  <thead>
+    <tr>
+      <th scope="col"> Translate - פירוש </th>
+      <th scope="col">V1</th>
+      <th scope="col">V2</th>
+      <th scope="col">V3</th>
+      <th scope="col">Click to check </th>
+    </tr>
+  </thead>
+  <tbody>
+
+
+
+
+    <%if (referer=== "http://localhost:3000/") { %>
+
+
+    <%  newVerbs.forEach(function(item){ %>
+  <form class="" action="/check" method="post">
+      <tr>
+        <th scope="row"><input  type="text" name="translation" value="<%=itemTranslation%>" autocomplete="off" placeholder="הכנס פירוש" onfocus ="" lang ="he"></th>
+
+
+        <td><%=item.v1%></td>
+        <td><input type="text" name="v2" value="<%=itemV2%>" autocomplete="off" placeholder="Enter V2" ></td>
+        <td><input type="text" name="v3" value="<%=itemV3%>" autocomplete="off" placeholder="Enter V3"></td>
+        <td id="<%=item._id%>">
+          <button type="submit" name="check" value="<%=item._id%>">🙋‍♀️</button>
+  <p><%=checkAnswer%>
+
+  </p>
+        </td>
+      </tr>
+        </form>
+  <%  }) %>
+    <% }else { %>
+
+
+       <%  newVerbs.forEach(function(item){ %>
+     <form class="" action="/check" method="post">
+         <tr>
+           <th scope="row"><input  type="text" name="translation" value="<%=item.translationRes%>" autocomplete="off" placeholder="הכנס פירוש" lang="he"></th>
+           <td><%=item.v1%></td>
+           <td><input type="text" name="v2" value="<%=item.v2Res%>" autocomplete="off" placeholder="Enter V2" ></td>
+           <td><input type="text" name="v3" value="<%=item.v3Res%>" autocomplete="off" placeholder="Enter V3"></td>
+           <td id="<%=item._id%>">
+
+             <button type="submit" name="check" value="<%=item._id%>">🙋‍♀️</button>
+     <p><%=item.check%></p>
+           </td>
+         </tr>
+           </form>
+     <%  }) %>
+     <% } %>
+
+
+
+  </tbody>
+</table>
+
+<!-- <form class="" action="/checkAll" method="post">
+  <p><button type="submit" name="check" value="">😁</button></p>
+  </form> -->
+
+
+<%- include("footer") -%>

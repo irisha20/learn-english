@@ -1,0 +1,71 @@
+<%- include("header") -%>
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <div class="box" id="heading">
+        <h1> Full List of Verbs </h1>
+      </div>
+    </div>
+    <div class="col">
+
+    <a href="/verbs">     <button class="button1" type="button" name="button" >Check Your Knowledge 🤓</button></a>
+
+    </div>
+  </div>
+
+
+
+
+
+  <table class="table table-bordered ">
+    <thead>
+      <tr>
+        <th scope="col">Meaning - פירוש</th>
+        <th scope="col">V1</th>
+        <th scope="col">V2</th>
+        <th scope="col">V3</th>
+        <th scope="col">Delete a verb😢</th>
+      </tr>
+    </thead>
+    <tbody>
+<%  newVerbs.forEach(function(item){ %>
+
+
+      <tr>
+        <td>
+
+          <%=item.translation%></td>
+        <td><%=item.v1%></td>
+        <td><%=item.v2%></td>
+        <td><%=item.v3%></td>
+        <td>
+          <form action="/delete" method="post">
+
+              <input type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
+
+          </form>
+          </td>
+      </tr>
+
+<%  }) %>
+    </tbody>
+  </table>
+
+
+<p></p>
+<form class="item" action="/add" method="post">
+
+  <tr>
+    <th scope="row"><input type="text" name="translationInsert" value="" placeholder="הכניסו פירוש" autocomplete="off"></th>
+    <td><input type="text" name="verb1" value="" placeholder="Add new verb 1" autocomplete="off"></td>
+    <td><input type="text" name="verb2" value="" placeholder="Add new verb 2" autocomplete="off"></td>
+    <td><input type="text" name="verb3" value="" placeholder="Add new verb 3" autocomplete="off"></td>
+  </tr>
+  <button type="submit" name="verb" value="">+</button>
+</form>
+
+
+<%- include("footer") -%>
