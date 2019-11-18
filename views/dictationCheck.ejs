@@ -1,0 +1,51 @@
+<%- include("header") -%>
+
+<div class="box" id="heading">
+  <h1>  Check Your Knowledge</h1>
+
+</div>
+
+  <h2><%=dictationTitle%></h2>
+
+<table class="table table-bordered ">
+<thead>
+  <tr>
+    <th scope="col"> פירוש </th>
+    <th scope="col">Word</th>
+
+    <th scope="col">Click to check </th>
+  </tr>
+</thead>
+<tbody>
+
+
+
+
+  <%newDictationWords.forEach(function(item){ %>
+  <form class="" action="/checkWords" method="post">
+    <tr>
+
+
+
+      <td><%=item.translation%></td>
+      <td><input type="text" name="word" value="<%=item.wordRes%>" autocomplete="off" placeholder="Enter Translation" ></td>
+
+      <td id="<%=item._id%>">
+        <input type="hidden" name="dictationTitle" value="<%= dictationTitle %>"></input>
+        <button type="submit" name="check" value="<%=item._id%>">🙋‍♀️</button>
+  <p><%=item.check%>
+
+  </p>
+      </td>
+    </tr>
+      </form>
+  <% }) %>
+
+
+
+
+
+</tbody>
+</table>
+
+<%- include("footer") -%>

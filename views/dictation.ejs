@@ -1,0 +1,153 @@
+<%- include("header") -%>
+
+<div class="container">
+
+
+<div class="row">
+
+<div class="col">
+<div class="box" id="heading">
+  <h1 > רשימה מלאה להכתבה</h1>
+
+</div>
+<h2><%=dictationTitle%></h2>
+  </div>
+<div class="col">
+
+<a href="checkWords/<%=dictationTitle%>">     <button class="button1" type="" name="" >Check Your Knowledge 🤓</button></a>
+
+</div>
+
+</div>
+
+
+
+<form class="item" action="/addWord2Dictation" method="post">
+
+  <tr>
+    <th scope="row"><input type="text" name="translationInsertWord" value="" placeholder="הכניסו פירוש" autocomplete="off"></th>
+    <td><input type="text" name="word" value="" placeholder="Add a new word" autocomplete="off"></td>
+    <input type="hidden" name="dictationTitle" value="<%= dictationTitle %>"></input>
+
+  </tr>
+  <button type="submit" name="" value="">+</button>
+
+
+
+</form>
+
+
+
+
+  <table class="table table-bordered ">
+    <thead>
+      <tr>
+        <th scope="col"> Translate - פירוש </th>
+        <th scope="col">Word in English</th>
+
+        <th scope="col">Click to delete </th>
+      </tr>
+    </thead>
+    <tbody>
+<%  newDictationWords.forEach(function(item){ %>
+
+
+      <tr>
+        <td>
+
+          <%=item.translation%></td>
+
+        <td><%=item.word%></td>
+
+        <td>
+
+
+          <form action="/deleteWordfromDictation" method="post">
+
+
+
+<button class="buttonDel" type="submit" name="buttonDelete" onclick="return confirm('Are you sure you want to delete this word?');" value="<%=item._id%>" >❌</button>
+  <input type="hidden" name="dictationTitle" value="<%= dictationTitle %>"></input>
+          </form>
+
+          </td>
+      </tr>
+
+<%  }) %>
+    </tbody>
+  </table>
+
+
+
+
+  <!-- <table class="table table-bordered ">
+  <thead>
+    <tr>
+      <th scope="col"> Translate - פירוש </th>
+      <th scope="col">Word in English</th>
+
+      <th scope="col">Click to check </th>
+    </tr>
+  </thead>
+  <tbody>
+
+
+
+
+<%const err = false%>
+
+    <%if (!err) { %>
+
+
+    <%  newDictationWords.forEach(function(item){ %>
+  <form class="" action="/checkWords" method="post">
+      <tr>
+        <th scope="row">  <%=item.translation%>  </th>
+
+
+
+        <td><input type="text" name="word" value="<%=item.word%>" autocomplete="off" placeholder="Write the word " ></td>
+
+        <td id="<%=item._id%>">
+
+
+
+          <button type="submit" name="checkWords" value="<%=item._id%>">🙋‍♀️</button>
+  <p><%=checkAnswer%>
+
+  </p>
+        </td>
+      </tr>
+        </form>
+  <%  }) %>
+    <% }else { %>
+
+
+       <%  newDictationWords.forEach(function(item){ %>
+     <form class="" action="/check" method="post">
+         <tr>
+           <th scope="row"><input  type="text" name="translation" value="<%=item.translationRes%>" autocomplete="off" placeholder="הכנס פירוש" lang="he"></th>
+           <td><%=item.v1%></td>
+           <td><input type="text" name="v2" value="<%=item.v2Res%>" autocomplete="off" placeholder="Enter V2" ></td>
+           <td><input type="text" name="v3" value="<%=item.v3Res%>" autocomplete="off" placeholder="Enter V3"></td>
+           <td id="<%=item._id%>">
+
+             <button type="submit" name="check" value="<%=item._id%>">🙋‍♀️</button>
+     <p><%=item.check%></p>
+           </td>
+         </tr>
+           </form>
+     <%  }) %>
+     <% } %>
+
+
+
+  </tbody>
+</table> -->
+
+<!-- <form class="" action="/checkAll" method="post">
+  <p><button type="submit" name="check" value="">😁</button></p>
+  </form> -->
+
+</div>
+<%- include("footer") -%>

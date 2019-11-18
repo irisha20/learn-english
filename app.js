@@ -6,6 +6,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
+var async = require("async");
+
 
 
 const app = express();
@@ -35,86 +37,138 @@ const Verb = mongoose.model("Verb", verbsSchema);
 
 
 
-const responsesSchema = new mongoose.Schema({
+const wordsSchema = new mongoose.Schema({
   translation: String,
-  v1:{type:String, uppercase: true},
-  v2:{type:String, uppercase: true},
-  v3:{type:String, uppercase: true}
-
+  word:{type:String, uppercase: true},
+  wordRes:{type:String, uppercase: true},
+  check:String
 });
 
-const Response = mongoose.model("Response", responsesSchema);
+const Word = mongoose.model("Word", wordsSchema);
 
 
+const word1 = new Word ({
+  translation: "רהיטים",
+  word: "furniture"
+});
+
+const word2 = new Word ({
+  translation: "יצור",
+  word: "creature"
+});
+
+defaultWords = [word1,word2];
+
+const dictationSchema = {
+  name: String,
+  words: [wordsSchema]
+};
+
+const Dictation = mongoose.model("Dictation", dictationSchema);
 
 
-
-
-// const verb1 = new Verb({
-//   translation:"ללמד",
-//   v1: "Teach",
-//   v2:"Taught",
-//   v3:"Taught"
+// const responsesSchema = new mongoose.Schema({
+//   translation: String,
+//   v1:{type:String, uppercase: true},
+//   v2:{type:String, uppercase: true},
+//   v3:{type:String, uppercase: true}
+//
 // });
 //
-// const verb2 = new Verb({
-//   translation:"לקבל",
-//   v1: "Get",
-//   v2:"Got",
-//   v3:"Gotten"
-// });
-//
-// const verb3 = new Verb({
-//   translation:"לפרוש",
-//   v1:"Quit",
-//   v2:"Quit",
-//   v3:"Quit",
-//
-// });
-//
-// const defaultVerbs = [verb1, verb2, verb3];
+// const Response = mongoose.model("Response", responsesSchema);
+
+
 
 
 app.get("/",function(req,res){
 
-  Verb.find(function(err, foundItems){
-
-      res.render("home", {newVerbs: foundItems});
-    });
-
+  // Verb.find(function(err, foundItems){
+  //
+  //     res.render("home", {newVerbs: foundItems});
+  //   });
+  //
 
 
     Verb.updateMany({},{$set: {v2Res:"",    v3Res:"",    translationRes:"",check:"" }}, function(err, affected){
       //  console.log('affected: ', affected);
+      console.log("Responses Verbs cleared");
     });
 
+
+//
+
+Dictation.updateMany(
+  {},
+  {$set: {"words.$[el].wordRes": ""} },
+  {
+    arrayFilters: [{"el.wordRes": { $gt: 0 } }],
+    new: true
+  },function(err,affected){if (!err){console.log("Responses Dictations cleared");
+
+
+
+}else {console.log(err);}}
+);
+
+Dictation.updateMany(
+  {},
+  {$set: {"words.$[el].check": ""} },
+  {
+    arrayFilters: [{"el.check": { $gt: 0 } }],
+    new: true
+  },function(err,affected){if (!err){console.log("Responses Checks cleared");
+
+
+
+}else {console.log(err);}}
+);
+
+    // Dictation.find(function(err, foundItems){
+    //
+    //     const dict = foundItems;
+    //   });
+
+
+////Test
+var locals = {};
+async.parallel([
+       //Load user Data
+       function(callback) {
+            Verb.find({},function(err,verbs){
+               if (err) return callback(err);
+               locals.verbs = verbs;
+               callback();
+           });
+       },
+       //Load posts Data
+       function(callback) {
+               Dictation.find({},function(err,dictations){
+              if (err) return callback(err);
+               locals.dictations = dictations;
+               callback();
+           });
+       }
+   ], function(err) { //This function gets called after the two tasks have called their "task callbacks"
+       if (err) return next(err); //If an error occurred, we let express handle it by calling the `next` function
+       //Here `locals` will be an object with `user` and `posts` keys
+       //Example: `locals = {user: ..., posts: [...]}`
+        res.render("home", {newVerbs: locals.verbs ,newDictations: locals.dictations});
+
+
+
+
+
+});
 });
 
 
 
 
 app.get("/verbs",function(req,res){
-//console.log(res.body);
-//console.log(req.headers.referer);
-//console.log(req.headers);
-
-// if (req.headers.referer=== "http://localhost:3000/"){
-//   Verb.find( function(err, foundItems){
-//
-//
-//     res.render("verbs", {newVerbs: foundItems,checkAnswer:"",itemTranslation:"",itemV2:"",itemV3:""});
-//   });} else
 
   Verb.find( function(err, foundItems){
-
-
     res.render("verbs", {referer:req.headers.referer,newVerbs: foundItems,checkAnswer:"",itemTranslation:"",itemV2:"",itemV3:""});
-    // console.log(foundItems.translationRes);
-    // console.log(foundItems.v2Res);
-    // console.log(foundItems.v3Res);
   });
-
-
   });
 
 
@@ -142,6 +196,38 @@ app.post("/add",function(req,res){
     console.log(err);
   }
   });
+
+
+
+});
+
+
+
+
+app.post("/addWord2Dictation",function(req,res){
+
+
+
+  const translation = req.body.translationInsertWord;
+  const word = req.body.word;
+  const customVocabulary = req.body.dictationTitle;
+
+
+
+  const addedword2Dictation = new Word({
+translation:translation,
+word:word    });
+
+
+    Dictation.findOne({name: customVocabulary}, function(err, foundList){
+      foundList.words.push(addedword2Dictation);
+      foundList.save();
+      res.redirect("/" + customVocabulary);
+    });
+
+
+
+
 
 
 
@@ -242,16 +328,7 @@ Verb.findOneAndUpdate({_id:checkedItemId}, { $set: { check:"✅" }},function(err
 
 });
 
-
-
 res.redirect("/verbs"+"#"+checkedItemId);
-
-
-// Verb.find({},function(err,foundItems){
-//
-// res.render("verbs",{newVerbs: foundItems,checkAnswer:"✅",itemTranslation:foundItems.translationRes,itemV2:foundItems.v2Res,itemV3:foundItems.v3Res});
-//
-// });
 }
 else
 {
@@ -262,21 +339,169 @@ Verb.findOneAndUpdate({_id:checkedItemId}, { $set: { check:"❌" }},function(err
 });
 
 res.redirect("/verbs"+"#"+checkedItemId);
-  // Verb.find({},function(err,foundItems){
-  //
-  // res.render("verbs",{newVerbs: foundItems,checkAnswer:"❌",itemTranslation:translation,itemV2:v2,itemV3:v3})
-  //
-  // });
-
 }
 
 });
 
 });
 
+app.get("/checkWords/:customVocabulary",function(req,res){
+const customVocabulary = _.capitalize(req.params.customVocabulary);
+
+Dictation.findOne({name: customVocabulary}, function(err, foundDict){
+  if (!err){
+
+      //Show an existing list
+
+      res.render("dictationCheck", {dictationTitle: foundDict.name, newDictationWords: foundDict.words});
+
+  }
+});
+
+
+
+});
+
+
+
+
+app.post("/checkWords",function(req,res){
+
+
+const dictationTitle=req.body.dictationTitle;
+const word = req.body.word;
+const checkedItemId = req.body.check;
+
+
+
+Dictation.findOneAndUpdate(
+  {name: dictationTitle},
+  {$set: {"words.$[el].wordRes": word} },
+  {
+    arrayFilters: [{ "el._id": checkedItemId }],
+    new: true
+  },function(err,found){if (!err)
+    {console.log("WordRes recorded");
+
+    Dictation.findOneAndUpdate({name: dictationTitle},
+
+
+      {$set: { "words.$[el].check" :"✅" }},
+      {
+        arrayFilters: [{ "el._id": checkedItemId }],
+        new: true
+      },function(err,found){if (!err){console.log("OK");
+
+
+    found.words.forEach(function(item){
+    // console.log(item.check);
+    if (item._id == checkedItemId && item.word==item.wordRes){
+
+    // res.render("dictationCheck", {dictationTitle: found.name, newDictationWords: found.words,checkAnswer:item.check});
+     res.redirect("checkWords/"+ dictationTitle+"#"+checkedItemId)
+
+    } else if (item._id == checkedItemId && item.word!=item.wordRes){
+
+    console.log("wrong");
+    console.log(item._id, checkedItemId,item.word,item.wordRes);
+
+    Dictation.findOneAndUpdate({name: dictationTitle},
+      {$set: { "words.$[el].check" :"❌" }},
+      {
+        arrayFilters: [{ "el._id": checkedItemId }],
+        new: true
+      },function(err,found){
+    if(!err){res.redirect("checkWords/"+ dictationTitle+"#"+checkedItemId);}
+
+      }
+
+
+
+    );
+
+    }
+
+    });
+
+
+    }else {console.log(err);}}
+
+
+    );
+
+
+  }
+    else
+     {console.log(err);}}
+);
+
+
+
+
+
+
+
+
+
+// Dictation.findOneAndUpdate({name: dictationTitle},
+//   {$set: { "words.$[el].check" :"✅" }},
+//   {
+//     arrayFilters: [{ "el._id": checkedItemId }],
+//     new: true
+//   },function(err,found){if (!err){console.log("OK");
+//
+//
+// found.words.forEach(function(item){
+// // console.log(item.check);
+// if (item._id == checkedItemId){
+//
+// // res.render("dictationCheck", {dictationTitle: found.name, newDictationWords: found.words,checkAnswer:item.check});
+//  res.redirect("checkWords/"+ dictationTitle+"#"+checkedItemId)
+//
+// }
+//
+// });
+//
+//
+// }else {console.log(err);}}
+//
+//
+// );
+
+
+
+//
+//
+// if ( _.lowerCase(foundItem.word)===_.lowerCase(word))
+// {
+// console.log("Well Done");
+// Word.findOneAndUpdate({_id:checkedItemId}, { $set: { check:"✅" }},function(err,found){
+// //console.log(checkedItemId);
+//
+// });
+//
+//
+//
+// res.redirect("/dictation"+"#"+checkedItemId);
+// }
+// else
+// {
+// console.log("There are errors");
+// Word.findOneAndUpdate({_id:checkedItemId}, { $set: { check:"❌" }},function(err,found){
+// //console.log(found);
+//
+// });
+//
+// res.redirect("/dictation"+"#"+checkedItemId);
+// }
+//
+// });
+
+});
+
 
 app.post("/delete", function(req, res){
-  const checkedVerbId = req.body.checkbox;
+  const checkedVerbId = req.body.buttonDelete;
 
 
   Verb.findByIdAndRemove(checkedVerbId, function(err){
@@ -287,25 +512,77 @@ app.post("/delete", function(req, res){
   });
 });
 
-app.get("/", function(req, res) {
 
-  // Item.find({}, function(err, foundItems){
-  //
-  //   if (foundItems.length === 0) {
-  //     Item.insertMany(defaultItems, function(err){
-  //       if (err) {
-  //         console.log(err);
-  //       } else {
-  //         console.log("Successfully savevd default items to DB.");
-  //       }
-  //     });
-  //     res.redirect("/");
-  //   } else {
-  //     res.render("list", {listTitle: "Today", newListItems: foundItems});
-  //   }
-  // });
+app.post("/deleteWordfromDictation", function(req, res){
+  const checkedWordId = req.body.buttonDelete;
+//const customVocabulary = _.capitalize(req.params);
+const customVocabulary = req.body.dictationTitle;
+
+
+
+Dictation.findOneAndUpdate({name: customVocabulary}, {$pull: {words: {_id: checkedWordId}}}, function(err, foundList){
+  if (!err){
+
+    res.redirect("/" + customVocabulary);
+  } else{
+    console.log(err);
+  }
+});
+
 
 });
+
+
+app.post("/deleteDictation", function(req, res){
+  const checkedDictationId = req.body.buttonDelete;
+
+
+  Dictation.findByIdAndRemove(checkedDictationId, function(err){
+    if (!err) {
+      console.log("Successfully deleted dictation.");
+      res.redirect("/");
+    }
+  });
+
+
+
+
+
+
+});
+
+
+
+
+
+app.get("/:customVocabulary", function(req, res){
+  const customVocabulary = _.capitalize(req.params.customVocabulary);
+
+  Dictation.findOne({name: customVocabulary}, function(err, foundList){
+    if (!err){
+      if (!foundList){
+        //Create a new dictation
+        const dictation = new Dictation({
+          name: customVocabulary
+          // words:defaultWords
+
+        });
+        dictation.save();
+         res.redirect("/" + customVocabulary);
+        //res.render("dictation", {dictationTitle: foundList.name, newDictationWords: foundList.words,checkAnswer:""});
+      } else {
+        //Show an existing list
+
+        res.render("dictation", {dictationTitle: foundList.name, newDictationWords: foundList.words,checkAnswer:""});
+      }
+    }
+  });
+
+
+
+});
+
+
 
 
 
